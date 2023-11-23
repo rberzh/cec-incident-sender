@@ -1,2 +1,2 @@
 # cec-incident-sender
-MP10 Custom Event Collector incident sender. Telegram/Mattermost/MS Teams as destination
+Скрипт для MaxPatrol 10 Custom Event Collector, отправляющий уведомления об инцидентах в Telegram/Mattermost/MS Teams.
