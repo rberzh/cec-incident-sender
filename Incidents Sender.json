@@ -3,14 +3,10 @@
   "baseProfileName": "Custom Event Collector",
   "overrides": {
     "code": {
-      "ref_type": "dictionary",
       "ref_value": "incidents_sender"
     },
-    "connection": {},
     "custom_settings": {
       "chat_id": "id_of_telegram_chat",
-      "client_secret": "mp10_secret",
-      "collect": null,
       "gmt": 3,
       "minutes": 10,
       "mm_enabled": true,
@@ -19,7 +15,8 @@
       "teams_enabled": true,
       "teams_webhook_url": "teams_webhook_url",
       "tg_enabled": true,
-      "tg_token": "telegram_token"
+      "tg_token": "telegram_token",
+      "collect": null
     },
     "inputs": {
       "@GUID": null
@@ -31,10 +28,11 @@
       "max_allowed_memory": 512
     },
     "module_settings": {
-      "metric": false,
       "number_of_reconnects": 2,
-      "pre_reconnect_delay": 5000
+      "pre_reconnect_delay": 5000,
+      "metric": false
     },
+    "connection": {},
     "result_package": null
   }
 }

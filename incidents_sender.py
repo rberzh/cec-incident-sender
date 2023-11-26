@@ -45,7 +45,7 @@ def collect(target, settings, savepoint):
 
     try:
        # Obtain access token
-       token = obtain_token(target, settings["first_credential"]["login"], settings["first_credential"]["password"],settings["client_secret"])
+       token = obtain_token(target, settings["first_credential"]["login"], settings["first_credential"]["password"],settings["second_credential"]["password"])
        bearerToken = token["access_token"]
 
        # Get incidents and enrich them with description
@@ -266,7 +266,6 @@ def send_to_mattermost(incidents, mm_webhook_url, core_address, gmt, mm_username
                   f"*Описание*: {incident['description']}\n" \
                   f"[Перейти к событиям](https://{core_address}/#/events/view?groupId=-1&incKey={incident['key']}&incidentId={incident['id']}&incidentName={incident['name']})"
         
-
         # Send the message to Mattermost
         data = {
             "username": mm_username,
@@ -347,7 +346,6 @@ if __name__ == '__main__':
     target = "127.0.0.1"
     settings = dict(minutes=10,
                     gmt=3,
-                    client_secret="",
                     tg_enabled = True,
                     chat_id="",
                     tg_token="",
@@ -359,6 +357,9 @@ if __name__ == '__main__':
                     first_credential=dict(
                         login="",
                         password=""
+                    ),
+                    second_credential=dict(
+                    password=""
                     )
                    )
     run(target, settings)
