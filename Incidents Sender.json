@@ -1,0 +1,40 @@
+{
+  "baseProfileId": "4eef78fd-dbfb-4c15-8563-ec050c5d246f",
+  "baseProfileName": "Custom Event Collector",
+  "overrides": {
+    "code": {
+      "ref_type": "dictionary",
+      "ref_value": "incidents_sender"
+    },
+    "connection": {},
+    "custom_settings": {
+      "chat_id": "id_of_telegram_chat",
+      "client_secret": "mp10_secret",
+      "collect": null,
+      "gmt": 3,
+      "minutes": 10,
+      "mm_enabled": true,
+      "mm_username": "",
+      "mm_webhook_url": "mattermost_webhook_url",
+      "teams_enabled": true,
+      "teams_webhook_url": "teams_webhook_url",
+      "tg_enabled": true,
+      "tg_token": "telegram_token"
+    },
+    "inputs": {
+      "@GUID": null
+    },
+    "iteration_settings": {
+      "interval": 300000
+    },
+    "memory_settings": {
+      "max_allowed_memory": 512
+    },
+    "module_settings": {
+      "metric": false,
+      "number_of_reconnects": 2,
+      "pre_reconnect_delay": 5000
+    },
+    "result_package": null
+  }
+}
