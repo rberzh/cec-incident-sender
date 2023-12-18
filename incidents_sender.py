@@ -272,11 +272,11 @@ def send_to_mattermost(incidents, mm_webhook_url, core_address, gmt, mm_username
             "text": message
         }
 
-        test = make_request("POST",
+        make_request("POST",
                      mm_webhook_url,
                      headers=None,
                      data=json.dumps(data))
-        logging.info(test.json())
+
         logging.info(f"{incident['key']} sended to Mattermost successfully")
 
 def send_to_teams(incidents, teams_webhook_url, core_address, gmt):
