@@ -9,6 +9,8 @@
       "chat_id": "id_of_telegram_chat",
       "gmt": 3,
       "minutes": 10,
+      "filter_type": "",
+      "table_list_name": "",
       "mm_enabled": true,
       "mm_username": "",
       "mm_webhook_url": "mattermost_webhook_url",
