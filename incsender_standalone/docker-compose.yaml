@@ -1,0 +1,9 @@
+version: '3.8'
+
+services: 
+  incsender:
+    image: incsender
+    build: .
+    env_file: 
+      - './config/default.env'
+    restart: always

@@ -1,3 +1,4 @@
+import os
 import datetime
 import json
 import requests
@@ -5,11 +6,28 @@ import logging
 import socket
 import traceback
 from requests.adapters import HTTPAdapter, Retry
+import logging.handlers
+import time
 
 mpToken = None
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("/var/log/incsender.log"),
+        logging.handlers.RotatingFileHandler("/var/log/incsender.log", maxBytes=10000000, backupCount=1),
+        logging.StreamHandler()
+    ]
+)
+
 def run(target, settings):
     savepoint = None
+    if os.path.exists("./savepoint"):
+        with open("savepoint", "r") as file:
+            savepoint = file.read()
+    else:
+        savepoint = None
     has_more = True
     step = 0
 
@@ -21,8 +39,10 @@ def run(target, settings):
 
         has_more, savepoint = collect(target, settings, savepoint)
 
-        print("Has more:", has_more)
-        print("SavePoint:", savepoint)
+        with open("savepoint", "w") as file:
+            file.write(str(savepoint))
+
+        time.sleep(int(settings["schedule"])*60)
 
 
 def collect(target, settings, savepoint):
@@ -43,7 +63,7 @@ def collect(target, settings, savepoint):
         try:
             savepoint = datetime.datetime.strptime(savepoint, "%Y-%m-%dT%H:%M:%S.%f%z")
         except Exception as e:
-            logging.error("Error on savepoint processing: {}.".format(e))
+            logging.info("Error on savepoint processing: {}.".format(e))
             savepoint = datetime.datetime.now(datetime.timezone.utc)
 
     if (datetime.datetime.now(datetime.timezone.utc) - savepoint).days > 1:
@@ -69,7 +89,7 @@ def collect(target, settings, savepoint):
             settings["filter_type"].lower() not in ["bl", "wl"]
             or settings["table_list_name"] == ""
         ):
-            logging.error(
+            logging.info(
                 "Skip filtering due to invalid filter type or empty table list name"
             )
         else:
@@ -124,11 +144,14 @@ def collect(target, settings, savepoint):
                 settings["gmt"],
                 settings["mm_username"],
             )
-        
+
         if settings["syslog_enabled"] and settings["syslog_server"]:
             if settings["syslog_full_body"]:
                 full_incidents = [
-                    json.dumps(get_incident_data(bearerToken, target, incident["id"]), ensure_ascii=False)
+                    json.dumps(
+                        get_incident_data(bearerToken, target, incident["id"]),
+                        ensure_ascii=False,
+                    )
                     for incident in incidents["incidents"]
                 ]
                 send_to_syslog(
@@ -138,7 +161,7 @@ def collect(target, settings, savepoint):
                     target,
                     settings["syslog_proto"],
                     settings["syslog_port"],
-                    settings["syslog_full_body"]
+                    settings["syslog_full_body"],
                 )
             else:
                 send_to_syslog(
@@ -148,28 +171,24 @@ def collect(target, settings, savepoint):
                     target,
                     settings["syslog_proto"],
                     settings["syslog_port"],
-                    settings["syslog_full_body"]
-                )
-                
-                if settings["teams_enabled"] and settings["teams_webhook_url"]:
-                    send_to_teams(
-                        incidents, settings["teams_webhook_url"], target, settings["gmt"]
-                    )
-
-                # Process savepoint
-                savepoint = convert_unix_to_datetime(
-                    datetime.datetime.now(datetime.timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
+                    settings["syslog_full_body"],
                 )
 
-        return False, savepoint
+        if settings["teams_enabled"] and settings["teams_webhook_url"]:
+            send_to_teams(
+                incidents, settings["teams_webhook_url"], target, settings["gmt"]
+            )
+
+        # Process savepoint
+        savepoint = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f%z")
+
+        return True, savepoint
 
     except Exception as e:
         logging.error("Error while running collect: {}.".format(e))
         logging.error(traceback.format_exc())
 
-    return False, savepoint
+        return True, savepoint
 
 
 # Perform HTTP request
@@ -476,6 +495,7 @@ def send_to_teams(incidents, teams_webhook_url, core_address, gmt):
 
         logging.info(f"{incident['key']} sended to MS Teams successfully")
 
+
 def send_to_syslog(incidents, gmt, syslog_server, core_address, protocol, port, isFullBody):
     # Create a socket for sending messages
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM if protocol.lower() == "tcp" else socket.SOCK_DGRAM)
@@ -525,40 +545,29 @@ def convert_json_to_plain_text(data, prefix=""):
     else:
         plain_text = f"{prefix}={data}"
     return plain_text.strip()
-
-def convert_unix_to_datetime(timestamp):
-    try:
-        if isinstance(timestamp, (int, float)):
-            dt = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
-            formatted_dt = dt.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-            return formatted_dt
-        return timestamp
-    except Exception as e:
-        logging.info(f"Error converting Unix timestamp to datetime: {e}")
-        return timestamp
-
-
+    
 if __name__ == "__main__":
-    target = ""
+    target = os.getenv('MP10_ADDRESS', '')
     settings = dict(
-        minutes=10,
-        gmt=3,
-        filter_type="",
-        table_list_name="",
-        tg_enabled=False,
-        chat_id="",
-        tg_token="",
-        mm_enabled=False,
-        mm_username="",
-        mm_webhook_url="",
-        teams_enabled=False,
-        teams_webhook_url="",
-        syslog_enabled = False,
-        syslog_server="",
-        syslog_proto="tcp",
-        syslog_port=1468,
-        syslog_full_body= True,
-        first_credential=dict(login="", password=""),
-        second_credential=dict(password=""),
-    )
+     schedule = os.environ.get('SCHEDULE', '5'),
+     minutes=int(os.getenv('MINUTES', '10')),
+     gmt=int(os.getenv('GMT', '3')),
+     filter_type=os.getenv('FILTER_TYPE', ''),
+     table_list_name=os.getenv('TABLE_LIST_NAME', ''),
+     tg_enabled=bool(os.getenv('TG_ENABLED', 'False')),
+     chat_id=os.getenv('CHAT_ID', ''),
+     tg_token=os.getenv('TG_TOKEN', ''),
+     mm_enabled=bool(os.getenv('MM_ENABLED', 'False')),
+     mm_username=os.getenv('MM_USERNAME', ''),
+     mm_webhook_url=os.getenv('MM_WEBHOOK_URL', ''),
+     teams_enabled=bool(os.getenv('TEAMS_ENABLED', 'False')),
+     teams_webhook_url=os.getenv('TEAMS_WEBHOOK_URL', ''),
+     syslog_enabled=bool(os.getenv('SYSLOG_ENABLED', 'True')),
+     syslog_full_body=bool(os.getenv('SYSLOG_FULL_BODY', 'True')),
+     syslog_server=os.getenv('SYSLOG_SERVER', ''),
+     syslog_proto=os.getenv('SYSLOG_PROTO', 'tcp'),
+     syslog_port=int(os.getenv('SYSLOG_PORT', '1468')),
+     first_credential=dict(login=os.getenv('FIRST_CREDENTIAL_LOGIN', ''), password=os.getenv('FIRST_CREDENTIAL_PASSWORD', '')),
+     second_credential=dict(password=os.getenv('SECOND_CREDENTIAL_PASSWORD', ''))
+)
     run(target, settings)
