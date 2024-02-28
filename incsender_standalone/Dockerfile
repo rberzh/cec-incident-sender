@@ -4,6 +4,6 @@ WORKDIR /opt/incsender
 
 COPY ./script .
 
-RUN pip install -r requirements.txt
+RUN pip install --progress-bar off -r requirements.txt
 
 CMD [ "python", "./incsender.py"]

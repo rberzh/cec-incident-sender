@@ -23,19 +23,15 @@ logging.basicConfig(
 
 def run(target, settings):
     savepoint = None
-    if os.path.exists("./savepoint"):
-        with open("savepoint", "r") as file:
-            savepoint = file.read()
-    else:
-        savepoint = None
     has_more = True
-    step = 0
 
     while has_more:
-        step += 1
-
-        print("-" * 80)
-        print("Step:", step)
+        
+        if os.path.exists("./savepoint"):
+          with open("savepoint", "r") as file:
+            savepoint = file.read()
+        else:
+            savepoint = None
 
         has_more, savepoint = collect(target, settings, savepoint)
 

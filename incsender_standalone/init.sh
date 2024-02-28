@@ -45,7 +45,7 @@ input_with_default() {
 
   escaped_default_value=$(printf '%q' "$default_value")
 
-  read -p "Enter value for ${var_name} (default: ${escaped_default_value}): " input
+  read -p "Enter value for ${var_name} (current: ${escaped_default_value}): " input
   if [[ $input =~ [^a-zA-Z0-9_] ]]; then
     export $var_name="'${input:-$default_value}'"
   else
