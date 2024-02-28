@@ -505,17 +505,17 @@ def send_to_syslog(incidents, gmt, syslog_server, core_address, protocol, port, 
             # Format the incident data in CEF (or like CEF) format
             full_body_kv = convert_json_to_plain_text(json.loads(incident))
             inc = json.loads(incident)
-            message = f"CEF:0|PT|SIEM|8.0|{inc['name']}|{inc['severity']}|{full_body_kv}\n"
+            message = f"<14>CEF:0|PT|SIEM|8.0|{inc['name']}|{inc['severity']}|{full_body_kv}\n"
 
             # Send the message to the syslog server
             sock.send(message.encode("utf-8"))
             
-            logging.info(f"Incident {json.loads(incident)['key']} sent to syslog server successfully")
+            logging.info(f"Incident {inc['key']} sent to syslog server successfully")
     else:
         for incident in incidents["incidents"]:
             link = f"https://{core_address}/#/incident/incidents/view/{incident['id']}"
 
-            message = f"CEF:0|PT|SIEM|8.0|{incident['name']}|{incident['severity']}|description={incident['description']} link={link} time={(datetime.datetime.strptime(incident['created'][:26], '%Y-%m-%dT%H:%M:%S.%f') + datetime.timedelta(hours=gmt)).strftime('%H:%M:%S %d.%m.%Y')}\n"
+            message = f"<14>CEF:0|PT|SIEM|8.0|{incident['name']}|{incident['severity']}|description={incident['description']} link={link} time={(datetime.datetime.strptime(incident['created'][:26], '%Y-%m-%dT%H:%M:%S.%f') + datetime.timedelta(hours=gmt)).strftime('%H:%M:%S %d.%m.%Y')}\n"
 
             # Send the message to the syslog server
             sock.send(message.encode("utf-8"))
