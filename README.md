@@ -1,5 +1,5 @@
 # CEC Incidents sender
-Скрипт для MaxPatrol 10 Custom Event Collector, отправляющий уведомления об инцидентах в Telegram/Mattermost/MS Teams.
+Скрипт для MaxPatrol 10 Custom Event Collector, отправляющий уведомления об инцидентах в Telegram/Mattermost/MS Teams/на syslog-сервер.
 
 ## Список файлов
 - incidents_sender.py - сам скрипт (код для добоавления в справочник)
