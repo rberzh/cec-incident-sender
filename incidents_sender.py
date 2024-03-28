@@ -157,11 +157,11 @@ def collect(target, settings, savepoint):
                     )
 
                 # Process savepoint
-                savepoint = convert_unix_to_datetime(
-                    datetime.datetime.now(datetime.timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
-                )
+        savepoint = convert_unix_to_datetime(
+            datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+        )
 
         return False, savepoint
 
