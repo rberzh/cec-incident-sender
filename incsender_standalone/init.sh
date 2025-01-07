@@ -104,9 +104,9 @@ echo " "
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo " "
 
-if command -v docker-compose &> /dev/null; then
+if command -v docker-compose &> /dev/null && docker-compose --version &> /dev/null; then
     compose_cmd="docker-compose"
-elif command -v docker &> /dev/null && docker --version | grep -q "compose"; then
+elif command -v docker &> /dev/null && docker compose version &> /dev/null; then
     compose_cmd="docker compose"
 else
     echo "Error: Neither 'docker-compose' nor 'docker compose' command found. Please install docker & docker-compose first."
